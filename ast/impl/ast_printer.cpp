@@ -87,9 +87,7 @@ void AstPrinter::visit(ArrayType* node) {
         node->length->accept(*this);
     }
 
-    if (node->elementType != nullptr) {
-        node->elementType->accept(*this);
-    }
+    node->elementType->accept(*this);
 
     m_depth--;
 }
@@ -193,7 +191,7 @@ void AstPrinter::visit(ForLoop* node) {
 
     m_depth++;
 
-    // node->loopVar->accept(*this);
+    node->loopVar->accept(*this);
     node->rangeFrom->accept(*this);
     node->rangeTo->accept(*this);
     node->body->accept(*this);
