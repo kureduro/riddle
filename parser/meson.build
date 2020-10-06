@@ -8,5 +8,5 @@ libparser = static_library('parser',
                            install : true)
 
 
-parser_dep = declare_dependency(include_directories : '.',
+parser_dep = declare_dependency(include_directories : incdir,
                                 link_with : libparser)
