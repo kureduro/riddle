@@ -62,6 +62,9 @@ void PrettyPrinter::visit(RoutineDecl* node) {
     fmt::print(" is");
 
     node->body->accept(*this);
+
+    newline();
+    fmt::print("end");
 }
 
 void PrettyPrinter::visit(Type*) {
@@ -183,16 +186,6 @@ void PrettyPrinter::visit(Body* node) {
     }
 
     m_depth--;
-    newline();
-
-    // Yes, we'll have
-    // if x = 5 then
-    //     ...
-    // end else
-    //     ...
-    // end
-    // doesn't matter that much... I think
-    fmt::print("end");
 }
 
 void PrettyPrinter::visit(Statement*) {
@@ -223,6 +216,9 @@ void PrettyPrinter::visit(WhileLoop* node) {
     fmt::print(" loop");
 
     node->body->accept(*this);
+
+    newline();
+    fmt::print("end");
 }
 
 void PrettyPrinter::visit(ForLoop* node) {
@@ -241,6 +237,9 @@ void PrettyPrinter::visit(ForLoop* node) {
     fmt::print(" loop");
 
     node->body->accept(*this);
+
+    newline();
+    fmt::print("end");
 }
 
 void PrettyPrinter::visit(IfStatement* node) {
@@ -253,9 +252,13 @@ void PrettyPrinter::visit(IfStatement* node) {
     node->ifBody->accept(*this);
 
     if (node->elseBody) {
-        fmt::print(" else ");
+        newline();
+        fmt::print("else ");
         node->elseBody->accept(*this);
     }
+
+    newline();
+    fmt::print("end");
 }
 
 void PrettyPrinter::visit(Expression*) {
