@@ -1,4 +1,5 @@
 #include "visitors.hpp"
+#include <cassert>
 
 using namespace ast;
 
@@ -53,10 +54,6 @@ void AstPrinter::visit(RoutineDecl* node) {
     m_depth--;
 }
 
-void AstPrinter::visit(Type*) {
-    fmt::print("{:|>{}}- [Type]> (stray type)\n", "", m_depth);
-}
-
 void AstPrinter::visit(AliasedType* node) {
     fmt::print("{:|>{}}- [Type Identifier]> {}\n", "", m_depth, node->name);
 
@@ -67,10 +64,6 @@ void AstPrinter::visit(AliasedType* node) {
     }
 
     m_depth--;
-}
-
-void AstPrinter::visit(PrimitiveType*) {
-    fmt::print("{:|>{}}- [PrimitiveType]> unknown\n", "", m_depth);
 }
 
 void AstPrinter::visit(IntegerType*) {
@@ -161,10 +154,6 @@ void AstPrinter::visit(Body* node) {
     m_depth--;
 }
 
-void AstPrinter::visit(Statement*) {
-    fmt::print("{:|>{}}- [Statement]> Stray\n", "", m_depth);
-}
-
 void AstPrinter::visit(ReturnStatement* node) {
     fmt::print("{:|>{}}- [Return]>\n", "", m_depth);
     
@@ -226,10 +215,6 @@ void AstPrinter::visit(IfStatement* node) {
     m_depth--;
 }
 
-void AstPrinter::visit(Expression*) {
-    fmt::print("{:|>{}}- [Expression]> Stray\n", "", m_depth);
-}
-
 void AstPrinter::visit(UnaryExpression* node) {
     fmt::print("{:|>{}}- [UnaryExpression]> {}\n", "", m_depth,
                g_opToString[node->operation]);
@@ -251,10 +236,6 @@ void AstPrinter::visit(BinaryExpression* node) {
     node->operand2->accept(*this);
 
     m_depth--;
-}
-
-void AstPrinter::visit(Primary*) {
-    fmt::print("{:|>{}}- [Primary]> stray\n", "", m_depth);
 }
 
 void AstPrinter::visit(IntegerLiteral* node) {
@@ -283,6 +264,26 @@ void AstPrinter::visit(RoutineCall* node) {
     }
 
     m_depth--;
+}
+
+void AstPrinter::visit(Type*) {
+    assert(false);
+}
+
+void AstPrinter::visit(PrimitiveType*) {
+    assert(false);
+}
+
+void AstPrinter::visit(Statement*) {
+    assert(false);
+}
+
+void AstPrinter::visit(Expression*) {
+    assert(false);
+}
+
+void AstPrinter::visit(Primary*) {
+    assert(false);
 }
 
 } // namespace san

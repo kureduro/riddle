@@ -48,10 +48,8 @@ public:
     virtual ~Visitor() = default;
     virtual void visit(Program* node) = 0;
     virtual void visit(RoutineDecl* node) = 0;
-    virtual void visit(Type* node) = 0;
     virtual void visit(AliasedType* node) = 0;
     virtual void visit(TypeDecl* node) = 0;
-    virtual void visit(PrimitiveType* node) = 0;
     virtual void visit(IntegerType* node) = 0;
     virtual void visit(RealType* node) = 0;
     virtual void visit(BooleanType* node) = 0;
@@ -59,14 +57,11 @@ public:
     virtual void visit(RecordType* node) = 0;
     virtual void visit(VariableDecl* node) = 0;
     virtual void visit(Body* node) = 0;
-    virtual void visit(Statement* node) = 0;
     virtual void visit(ReturnStatement* node) = 0;
     virtual void visit(Assignment* node) = 0;
     virtual void visit(WhileLoop* node) = 0;
     virtual void visit(ForLoop* node) = 0;
     virtual void visit(IfStatement* node) = 0;
-    virtual void visit(Expression* node) = 0;
-    virtual void visit(Primary* node) = 0;
     virtual void visit(IntegerLiteral* node) = 0;
     virtual void visit(RealLiteral* node) = 0;
     virtual void visit(BooleanLiteral* node) = 0;
@@ -74,6 +69,13 @@ public:
     virtual void visit(RoutineCall* node) = 0;
     virtual void visit(UnaryExpression* node) = 0;
     virtual void visit(BinaryExpression* node) = 0;
+
+    // Abstract, should never be called
+    virtual void visit(Type* node) = 0;
+    virtual void visit(PrimitiveType* node) = 0;
+    virtual void visit(Statement* node) = 0;
+    virtual void visit(Expression* node) = 0;
+    virtual void visit(Primary* node) = 0;
 
     std::vector<Error> getErrors() { return std::vector<Error>(m_errors); }
 

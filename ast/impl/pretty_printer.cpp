@@ -1,6 +1,8 @@
+#include "ast.hpp"
 #include "fmt/core.h"
 #include "visitors.hpp"
 #include <memory>
+#include <cassert>
 
 using namespace ast;
 
@@ -67,16 +69,8 @@ void PrettyPrinter::visit(RoutineDecl* node) {
     fmt::print("end");
 }
 
-void PrettyPrinter::visit(Type*) {
-    fmt::print("<stray type>\n", "", m_depth);
-}
-
 void PrettyPrinter::visit(AliasedType* node) {
     fmt::print("{}", node->name);
-}
-
-void PrettyPrinter::visit(PrimitiveType*) {
-    fmt::print("<unknown primitive type>");
 }
 
 void PrettyPrinter::visit(IntegerType*) {
@@ -188,10 +182,6 @@ void PrettyPrinter::visit(Body* node) {
     m_depth--;
 }
 
-void PrettyPrinter::visit(Statement*) {
-    fmt::print("<stray statement>");
-}
-
 void PrettyPrinter::visit(ReturnStatement* node) {
     fmt::print("return");
 
@@ -261,10 +251,6 @@ void PrettyPrinter::visit(IfStatement* node) {
     fmt::print("end");
 }
 
-void PrettyPrinter::visit(Expression*) {
-    fmt::print("<stray expression>");
-}
-
 void PrettyPrinter::visit(UnaryExpression* node) {
     fmt::print("{}", g_opToString[node->operation]);
     node->operand->accept(*this);
@@ -280,10 +266,6 @@ void PrettyPrinter::visit(BinaryExpression* node) {
     node->operand2->accept(*this);
 
     fmt::print(")");
-}
-
-void PrettyPrinter::visit(Primary*) {
-    fmt::print("<stray primary>");
 }
 
 void PrettyPrinter::visit(IntegerLiteral* node) {
@@ -314,6 +296,26 @@ void PrettyPrinter::visit(RoutineCall* node) {
     }
 
     fmt::print(")");
+}
+
+void PrettyPrinter::visit(Type*) {
+    assert(false);
+}
+
+void PrettyPrinter::visit(PrimitiveType*) {
+    assert(false);
+}
+
+void PrettyPrinter::visit(Statement*) {
+    assert(false);
+}
+
+void PrettyPrinter::visit(Expression*) {
+    assert(false);
+}
+
+void PrettyPrinter::visit(Primary*) {
+    assert(false);
 }
 
 void PrettyPrinter::newline() {
