@@ -94,5 +94,18 @@ int main(int argc, char* argv[]) {
     // TODO: Remove
     ast->accept(prettyPrinter);
 
+    fmt::print(fmt::emphasis::bold, "missing return: ");
+
+    san::MissingReturn missingReturn;
+    ast->accept(missingReturn);
+
+    errors = missingReturn.getErrors();
+    if (!errors.empty()) {
+        fmt::print(fmt::fg(fmt::color::indian_red), "fail\n");
+        printErrors(code, errors);
+        return 1;
+    }
+
+    fmt::print(fmt::fg(fmt::color::green), "pass\n");
     return 0;
 }

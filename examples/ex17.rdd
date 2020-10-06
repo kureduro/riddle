@@ -1,0 +1,57 @@
+// FAIL: a, c, d, f, g
+
+routine a() : integer is
+end
+
+routine b() : integer is
+    return 42
+end
+
+routine c(arg : integer) : integer is
+    for i in 1..9 loop
+        if arg = i then
+            return 42
+        end
+    end
+end
+
+routine d() : integer is
+    if true then
+        return 42
+    end
+end
+
+routine e() : integer is
+    if 1 then
+        if 2 = 2 then
+            return 2
+        else
+            return -2
+        end
+    else
+        while true loop
+            return 42
+        end
+        return -42
+    end
+end
+
+routine f() : integer is
+    while true loop
+        if true = true then
+            return 42
+        else
+            return 0
+        end
+    end
+end
+
+routine g() : integer is
+    for i in 9..1 loop
+        if false then
+            return 0
+        else
+            return -42
+        end
+    end
+end
