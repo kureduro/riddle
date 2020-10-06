@@ -64,11 +64,15 @@ int main(int argc, char* argv[]) {
 
     // TODO: hide behind option `--print-ast`
     // Print the AST
-    visitors::PrintVisitor astPrinter;
+    san::AstPrinter astPrinter;
     ast->accept(astPrinter);
 
+    // TODO: Remove
+    san::PrettyPrinter prettyPrinter;
+    ast->accept(prettyPrinter);
+
     // Resolve identifiers to their declarations
-    visitors::IdentifierResolver idResolver;
+    san::IdentifierResolver idResolver;
     ast->accept(idResolver);
     errors = idResolver.getErrors();
 

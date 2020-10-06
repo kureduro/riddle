@@ -2,9 +2,9 @@
 #include <memory>
 #include <set>
 
-namespace visitors {
-
 using namespace ast;
+
+namespace san {
 
 void IdentifierResolver::visit(Program* node) {
     // Check if anything is declared twice in global scope and visit

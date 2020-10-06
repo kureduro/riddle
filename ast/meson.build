@@ -13,8 +13,9 @@ ast_dep = declare_dependency(include_directories : '.',
 
 libvisitors = static_library('visitors', 
                              sources : [
-                                 'impl/print_visitor.cpp',
-                                 'impl/identifier_resolver.cpp'
+                                 'impl/ast_printer.cpp',
+                                 'impl/identifier_resolver.cpp',
+                                 'impl/pretty_printer.cpp',
                              ],
                              cpp_args : riddle_cpp_args,
                              c_args : riddle_c_args,

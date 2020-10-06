@@ -2,7 +2,7 @@
 
 using namespace ast;
 
-std::map<lexer::TokenType, std::string> op_to_string{
+std::map<lexer::TokenType, std::string> g_opToString{
     {lexer::TokenType::Add, "+"},     {lexer::TokenType::Sub, "-"},
     {lexer::TokenType::Mul, "*"},     {lexer::TokenType::Div, "/"},
     {lexer::TokenType::Mod, "%"},     {lexer::TokenType::Or, "or"},
@@ -260,7 +260,7 @@ void AstPrinter::visit(UnaryExpression* node) {
         return;
     }
     fmt::print("{:|>{}}- [UnaryExpression]> {}\n", "", m_depth,
-               op_to_string[node->operation]);
+               g_opToString[node->operation]);
     m_depth++;
     node->operand->accept(*this);
     m_depth--;
@@ -271,7 +271,7 @@ void AstPrinter::visit(BinaryExpression* node) {
         return;
     }
     fmt::print("{:|>{}}- [BinaryExpression]> {}\n", "", m_depth,
-               op_to_string[node->operation]);
+               g_opToString[node->operation]);
     m_depth++;
     node->operand1->accept(*this);
     node->operand2->accept(*this);

@@ -1,13 +1,13 @@
 #include "ast.hpp"
 #include <memory>
 
-namespace visitors {
+namespace san {
 
 template <typename T> using sPtr = std::shared_ptr<T>;
 
-class PrintVisitor : public ast::Visitor {
+class AstPrinter : public ast::Visitor {
 public:
-    PrintVisitor(size_t depth = 0) : m_depth(depth) {}
+    AstPrinter(size_t depth = 0) : m_depth(depth) {}
     void visit(ast::Program* node) override;
     void visit(ast::RoutineDecl* node) override;
     void visit(ast::Type* node) override;
@@ -39,6 +39,44 @@ public:
 
 private:
     size_t m_depth;
+};
+
+
+class PrettyPrinter : public ast::Visitor {
+public:
+    PrettyPrinter(size_t depth = 0) : m_depth(depth) {}
+    void visit(ast::Program* node) override;
+    void visit(ast::RoutineDecl* node) override;
+    void visit(ast::Type* node) override;
+    void visit(ast::AliasedType* node) override;
+    void visit(ast::PrimitiveType* node) override;
+    void visit(ast::IntegerType* node) override;
+    void visit(ast::RealType* node) override;
+    void visit(ast::BooleanType* node) override;
+    void visit(ast::ArrayType* node) override;
+    void visit(ast::RecordType* node) override;
+    void visit(ast::VariableDecl* node) override;
+    void visit(ast::TypeDecl* node) override;
+    void visit(ast::Body* node) override;
+    void visit(ast::Statement* node) override;
+    void visit(ast::ReturnStatement* node) override;
+    void visit(ast::Assignment* node) override;
+    void visit(ast::WhileLoop* node) override;
+    void visit(ast::ForLoop* node) override;
+    void visit(ast::IfStatement* node) override;
+    void visit(ast::Expression* node) override;
+    void visit(ast::UnaryExpression* node) override;
+    void visit(ast::BinaryExpression* node) override;
+    void visit(ast::Primary* node) override;
+    void visit(ast::IntegerLiteral* node) override;
+    void visit(ast::RealLiteral* node) override;
+    void visit(ast::BooleanLiteral* node) override;
+    void visit(ast::Identifier* node) override;
+    void visit(ast::RoutineCall* node) override;
+
+private:
+    size_t m_depth = 0;
+    bool m_oneLine = false;
 };
 
 /**
