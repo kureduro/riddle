@@ -42,6 +42,12 @@ private:
 };
 
 
+/**
+ * Pretty printer will produce a code using the AST, that would resemble
+ * real code as much as possible.
+ *
+ * Does not alter the tree.
+ */
 class PrettyPrinter : public ast::Visitor {
 public:
     PrettyPrinter(size_t depth = 0) : m_depth(depth) {}
@@ -90,6 +96,60 @@ private:
     // Print a new line and indent correctly.
     void newline();
 };
+
+
+/**
+ * Analyze bodies of the routines and check that routine will always return.
+ *
+ * It is possible to satisfy checker by always putting a return statement at
+ * the end of routines. More complex constructions may not be allowed.
+ *
+ * For example, this, although always returning, would be rejected:
+ *
+ * for i in 1..9 loop
+ *     for j in 1..9 loop
+ *         if i = 9 and j = 9 then
+ *             return
+ *         end
+ *     end
+ * end
+ */
+class MissingReturn : public ast::Visitor {
+public:
+    MissingReturn() {}
+    void visit(ast::Program* node) override;
+    void visit(ast::RoutineDecl* node) override;
+    void visit(ast::Type* node) override;
+    void visit(ast::AliasedType* node) override;
+    void visit(ast::PrimitiveType* node) override;
+    void visit(ast::IntegerType* node) override;
+    void visit(ast::RealType* node) override;
+    void visit(ast::BooleanType* node) override;
+    void visit(ast::ArrayType* node) override;
+    void visit(ast::RecordType* node) override;
+    void visit(ast::VariableDecl* node) override;
+    void visit(ast::TypeDecl* node) override;
+    void visit(ast::Body* node) override;
+    void visit(ast::Statement* node) override;
+    void visit(ast::ReturnStatement* node) override;
+    void visit(ast::Assignment* node) override;
+    void visit(ast::WhileLoop* node) override;
+    void visit(ast::ForLoop* node) override;
+    void visit(ast::IfStatement* node) override;
+    void visit(ast::Expression* node) override;
+    void visit(ast::UnaryExpression* node) override;
+    void visit(ast::BinaryExpression* node) override;
+    void visit(ast::Primary* node) override;
+    void visit(ast::IntegerLiteral* node) override;
+    void visit(ast::RealLiteral* node) override;
+    void visit(ast::BooleanLiteral* node) override;
+    void visit(ast::Identifier* node) override;
+    void visit(ast::RoutineCall* node) override;
+
+private:
+    bool m_hasReturn = true;
+};
+
 
 /**
  * This visitor performs resolution of variables/routine calls to their

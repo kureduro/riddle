@@ -11,10 +11,6 @@ extern std::map<lexer::TokenType, std::string> g_opToString;
 namespace san {
 
 void PrettyPrinter::visit(Program* node) {
-    if (node == nullptr) {
-        return;
-    }
-
     for (auto type : node->types) {
         type->accept(*this);
         newline();
@@ -204,6 +200,7 @@ void PrettyPrinter::visit(Assignment* node) {
 
     node->rhs->accept(*this);
 }
+
 void PrettyPrinter::visit(WhileLoop* node) {
     fmt::print("while ");
 
