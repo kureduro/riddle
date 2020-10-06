@@ -317,4 +317,4 @@ void PrettyPrinter::newline() {
     fmt::print("\n{:\t>{}}", "", m_depth);
 }
 
-} // namespace visitors
+} // namespace san

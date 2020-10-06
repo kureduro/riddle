@@ -402,4 +402,4 @@ sPtr<VariableDecl> IdentifierResolver::findVarDecl(std::string name) {
     return nullptr;
 }
 
-} // namespace visitors
+} // namespace san
