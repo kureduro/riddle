@@ -2,17 +2,7 @@
 
 using namespace ast;
 
-std::map<lexer::TokenType, std::string> op_to_string{
-    {lexer::TokenType::Add, "+"},     {lexer::TokenType::Sub, "-"},
-    {lexer::TokenType::Mul, "*"},     {lexer::TokenType::Div, "/"},
-    {lexer::TokenType::Mod, "%"},     {lexer::TokenType::Or, "or"},
-    {lexer::TokenType::Xor, "xor"},   {lexer::TokenType::And, "and"},
-    {lexer::TokenType::Eq, "="},      {lexer::TokenType::Neq, "/="},
-    {lexer::TokenType::Less, "<"},    {lexer::TokenType::Leq, "<="},
-    {lexer::TokenType::Greater, ">"}, {lexer::TokenType::Geq, ">="},
-    {lexer::TokenType::Not, "not"},   {lexer::TokenType::OpenParen, "()"},
-    {lexer::TokenType::Dot, "."},     {lexer::TokenType::OpenBrack, "[]"},
-};
+extern std::map<lexer::TokenType, std::string> g_opToString;
 
 namespace san {
 
