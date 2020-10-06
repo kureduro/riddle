@@ -36,13 +36,10 @@ void PrettyPrinter::visit(Program* node) {
 }
 
 void PrettyPrinter::visit(RoutineDecl* node) {
-    if (node == nullptr) {
-        return;
-    }
-
     fmt::print("routine {} (", node->name);
 
     m_oneLine++;
+    m_skipVarKeyword++;
 
     for (size_t i = 0; i < node->parameters.size(); i++) {
         node->parameters[i]->accept(*this);
@@ -59,6 +56,7 @@ void PrettyPrinter::visit(RoutineDecl* node) {
         node->returnType->accept(*this);
     }
 
+    m_skipVarKeyword--;
     m_oneLine--;
 
     fmt::print(" is");
@@ -109,6 +107,8 @@ void PrettyPrinter::visit(RecordType* node) {
         fmt::print(" ");
     }
 
+    m_skipVarKeyword++;
+
     for (auto field : node->fields) {
         if (!m_oneLine) {
             newline();
@@ -121,6 +121,8 @@ void PrettyPrinter::visit(RecordType* node) {
         }
     }
 
+    m_skipVarKeyword--;
+
     if (!m_oneLine) {
         m_depth--;
         newline();
@@ -131,7 +133,11 @@ void PrettyPrinter::visit(RecordType* node) {
 }
 
 void PrettyPrinter::visit(VariableDecl* node) {
-    fmt::print("var {}", node->name);
+    if (!m_skipVarKeyword) {
+        fmt::print("var ");
+    }
+
+    fmt::print("{}", node->name);
 
     m_oneLine++;
 

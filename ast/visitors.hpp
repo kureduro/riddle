@@ -76,8 +76,18 @@ public:
 
 private:
     size_t m_depth = 0;
+
+    // If not zero, prefer to output code in one line.
+    // The type is integer to allow nested (recursive) "enabling" and 
+    // "disabling" of this option.
     int m_oneLine = 0;
 
+    // Option should be changed to non-zero value to skip 'var' keyword when 
+    // printing variable declarations. Useful for correctly printing record
+    // fields and routine parameters.
+    int m_skipVarKeyword = 0;
+
+    // Print a new line and indent correctly.
     void newline();
 };
 
