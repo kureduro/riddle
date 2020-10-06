@@ -76,7 +76,9 @@ public:
 
 private:
     size_t m_depth = 0;
-    bool m_oneLine = false;
+    int m_oneLine = 0;
+
+    void newline();
 };
 
 /**

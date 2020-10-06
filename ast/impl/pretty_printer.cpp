@@ -1,4 +1,6 @@
+#include "fmt/core.h"
 #include "visitors.hpp"
+#include <memory>
 
 using namespace ast;
 
@@ -13,17 +15,21 @@ void PrettyPrinter::visit(Program* node) {
 
     for (auto type : node->types) {
         type->accept(*this);
-        fmt::print("\n\n");
+        newline();
+        newline();
     }
 
     for (auto variableDecl : node->variables) {
         variableDecl->accept(*this);
-        fmt::print("\n");
+        newline();
     }
+
+    newline();
 
     for (auto routine : node->routines) {
         routine->accept(*this);
-        fmt::print("\n\n");
+        newline();
+        newline();
     }
 }
 
@@ -33,6 +39,8 @@ void PrettyPrinter::visit(RoutineDecl* node) {
     }
 
     fmt::print("routine {} (", node->name);
+
+    m_oneLine++;
 
     for (size_t i = 0; i < node->parameters.size(); i++) {
         node->parameters[i]->accept(*this);
@@ -46,12 +54,12 @@ void PrettyPrinter::visit(RoutineDecl* node) {
     if (node->returnType != nullptr) {
         fmt::print(" : ");
 
-        m_oneLine = true;
         node->returnType->accept(*this);
-        m_oneLine = false;
     }
 
-    fmt::print(" is\n");
+    m_oneLine--;
+
+    fmt::print(" is");
 
     node->body->accept(*this);
 }
@@ -84,8 +92,9 @@ void PrettyPrinter::visit(ArrayType* node) {
     fmt::print("array");
 
     if (node->length != nullptr) {
-        fmt::print(" ");
+        fmt::print(" [");
         node->length->accept(*this);
+        fmt::print("]");
     }
 
     if (node->elementType != nullptr) {
@@ -98,7 +107,6 @@ void PrettyPrinter::visit(RecordType* node) {
     fmt::print("record");
 
     if (!m_oneLine) {
-        fmt::print("\n");
         m_depth++;
     } else {
         fmt::print(" ");
@@ -106,21 +114,20 @@ void PrettyPrinter::visit(RecordType* node) {
 
     for (auto field : node->fields) {
         if (!m_oneLine) {
-            fmt::print("{:\t>{}}", "", m_depth);
+            newline();
         }
 
         field->accept(*this);
 
-        if (!m_oneLine) {
-            fmt::print("\n");
-        } else {
+        if (m_oneLine) {
             fmt::print("; ");
         }
     }
 
     if (!m_oneLine) {
-        fmt::print("end");
         m_depth--;
+        newline();
+        fmt::print("end");
     } else {
         fmt::print("end;");
     }
@@ -129,14 +136,14 @@ void PrettyPrinter::visit(RecordType* node) {
 void PrettyPrinter::visit(VariableDecl* node) {
     fmt::print("var {}", node->name);
 
-    m_oneLine = true;
+    m_oneLine++;
 
     if (node->type != nullptr) {
         fmt::print(" : ");
         node->type->accept(*this);
     }
 
-    m_oneLine = false;
+    m_oneLine--;
 
     if (node->initialValue != nullptr) {
         fmt::print(" is ");
@@ -153,186 +160,161 @@ void PrettyPrinter::visit(TypeDecl* node) {
 }
 
 void PrettyPrinter::visit(Body* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Body]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Body]>\n", "", m_depth);
     m_depth++;
+
     for (auto type : node->types) {
+        newline();
         type->accept(*this);
+        newline();
     }
+
     for (auto variableDecl : node->variables) {
+        newline();
         variableDecl->accept(*this);
     }
+
+    if (!node->variables.empty() && !node->statements.empty()) {
+        newline();
+    }
+
     for (auto statement : node->statements) {
+        newline();
         statement->accept(*this);
     }
+
     m_depth--;
+    newline();
+
+    // Yes, we'll have
+    // if x = 5 then
+    //     ...
+    // end else
+    //     ...
+    // end
+    // doesn't matter that much... I think
+    fmt::print("end");
 }
 
-void PrettyPrinter::visit(Statement* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Statement]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Statement]> Unknown\n", "", m_depth);
+void PrettyPrinter::visit(Statement*) {
+    fmt::print("<stray statement>");
 }
+
 void PrettyPrinter::visit(ReturnStatement* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Return]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Return]>\n", "", m_depth);
-    m_depth++;
+    fmt::print("return");
+
     if (node->expression != nullptr) {
+        fmt::print(" ");
         node->expression->accept(*this);
     }
-    m_depth--;
 }
+
 void PrettyPrinter::visit(Assignment* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Assignment]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Assignment]>\n", "", m_depth);
-    m_depth++;
     node->lhs->accept(*this);
+
+    fmt::print(" := ");
+
     node->rhs->accept(*this);
-    m_depth--;
 }
 void PrettyPrinter::visit(WhileLoop* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [WhileLoop]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [WhileLoop]>\n", "", m_depth);
-    m_depth++;
+    fmt::print("while ");
+
     node->condition->accept(*this);
+
+    fmt::print(" loop");
+
     node->body->accept(*this);
-    m_depth--;
 }
+
 void PrettyPrinter::visit(ForLoop* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [ForLoop]> null\n", "", m_depth);
-        return;
+    fmt::print("for {} in ", node->loopVar->name);
+
+    if (node->reverse) {
+        fmt::print("reverse ");
     }
-    fmt::print("{:|>{}}- [ForLoop]>\n", "", m_depth);
-    m_depth++;
-    // node->loopVar->accept(*this);
+
     node->rangeFrom->accept(*this);
+
+    fmt::print("..");
+
     node->rangeTo->accept(*this);
+
+    fmt::print(" loop");
+
     node->body->accept(*this);
-    m_depth--;
 }
+
 void PrettyPrinter::visit(IfStatement* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [IfStatement]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [IfStatement]>\n", "", m_depth);
-    m_depth++;
+    fmt::print("if ");
+
     node->condition->accept(*this);
+
+    fmt::print(" then");
+
     node->ifBody->accept(*this);
+
     if (node->elseBody) {
+        fmt::print(" else ");
         node->elseBody->accept(*this);
     }
-    m_depth--;
 }
-void PrettyPrinter::visit(Expression* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Expression]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Expression]>\n", "", m_depth);
+
+void PrettyPrinter::visit(Expression*) {
+    fmt::print("<stray expression>");
 }
+
 void PrettyPrinter::visit(UnaryExpression* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [UnaryExpression]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [UnaryExpression]> {}\n", "", m_depth,
-               op_to_string[node->operation]);
-    m_depth++;
+    fmt::print("{}", g_opToString[node->operation]);
     node->operand->accept(*this);
-    m_depth--;
 }
+
 void PrettyPrinter::visit(BinaryExpression* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [BinaryExpression]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [BinaryExpression]> {}\n", "", m_depth,
-               op_to_string[node->operation]);
-    m_depth++;
+    fmt::print("(");
+
     node->operand1->accept(*this);
+
+    fmt::print(" {} ", g_opToString[node->operation]);
+
     node->operand2->accept(*this);
-    m_depth--;
+
+    fmt::print(")");
 }
-void PrettyPrinter::visit(Primary* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Primary]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Primary]> unknown\n", "", m_depth);
+
+void PrettyPrinter::visit(Primary*) {
+    fmt::print("<stray primary>");
 }
+
 void PrettyPrinter::visit(IntegerLiteral* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [IntegerLiteral]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [IntegerLiteral]> {}\n", "", m_depth, node->value);
+    fmt::print("{}", node->value);
 }
+
 void PrettyPrinter::visit(RealLiteral* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [RealLiteral]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [RealLiteral]> {}\n", "", m_depth, node->value);
+    fmt::print("{}", node->value);
 }
+
 void PrettyPrinter::visit(BooleanLiteral* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [BooleanLiteral]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [BooleanLiteral]> {}\n", "", m_depth, node->value);
+    fmt::print("{}", node->value);
 }
+
 void PrettyPrinter::visit(Identifier* node) {
-    fmt::print("<skip>\n"); return;
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [Identifier]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [Identifier]> {}\n", "", m_depth, node->name);
+    fmt::print("{}", node->name);
 }
 
 void PrettyPrinter::visit(RoutineCall* node) {
-    fmt::print("<skip>\n"); return;
+    fmt::print("{}(", node->routineName);
 
-    if (node == nullptr) {
-        fmt::print("{:|>{}}- [RoutineCall]> null\n", "", m_depth);
-        return;
-    }
-    fmt::print("{:|>{}}- [RoutineCall]> {}\n", "", m_depth, node->routineName);
-    m_depth++;
     for (size_t i = 0; i < node->args.size(); i++) {
         node->args[i]->accept(*this);
+
+        if (i + 1 != node->args.size()) {
+            fmt::print(", ");
+        }
     }
-    m_depth--;
+
+    fmt::print(")");
+}
+
+void PrettyPrinter::newline() {
+    fmt::print("\n{:\t>{}}", "", m_depth);
 }
 
 } // namespace visitors

@@ -1,0 +1,50 @@
+type Array2D is array [5] array [4 + 3] real
+
+var g_Sas : integer is 4
+var g_Sos is 2
+
+type Human is record
+    var id : integer
+    var age : real
+    var height : real
+    var tra : boolean
+end
+
+routine jibberish (a : Array2D, b : integer, c : array array Human) : Human is
+    var coc is a + b
+
+    for i in reverse 1..b loop
+        var j : integer
+        j := j + i + coc
+        while i < j loop
+            i := i - j
+            j := j - coc + i
+        end
+
+        if i < j then
+            var wtf : boolean is true
+        else
+            var ok is true
+            ok := false
+            var hyh : Human
+            return hyh
+        end
+    end
+
+    if coc /= a then
+        for ses in b..1 loop
+            type Sosiska is integer
+            var ssska : Sosiska is ses
+            coc := coc - ssska
+        end
+    end
+            
+    var hah : Human
+    hah.id := -2
+    hah.age := 19
+    hah.height := 1.62
+    hah.tra := true
+
+    c[0][0] := hah
+    return c[0][0]
+end

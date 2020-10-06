@@ -59,15 +59,14 @@ int main(int argc, char* argv[]) {
         printErrors(code, errors);
         return 1;
     }
-    fmt::print("Parsing: ");
+    fmt::print(fmt::emphasis::bold, "Parsing: ");
     fmt::print(fg(fmt::color::green), "success!\n\n");
 
     // TODO: hide behind option `--print-ast`
     // Print the AST
-    san::AstPrinter astPrinter;
-    ast->accept(astPrinter);
+    //san::AstPrinter astPrinter;
+    //ast->accept(astPrinter);
 
-    // TODO: Remove
     san::PrettyPrinter prettyPrinter;
     ast->accept(prettyPrinter);
 
@@ -83,12 +82,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    fmt::print("\nIdentifier resolution: ");
-    fmt::print(fg(fmt::color::green), "success!\n");
+    fmt::print(fmt::emphasis::bold, "\nIdentifier resolution: ");
+    fmt::print(fg(fmt::color::green), "success!\n\n");
 
+    /*
     // Print again after tree modification
     fmt::print(fg(fmt::color::gold), "\nNew tree:\n\n");
     ast->accept(astPrinter);
+    */
+
+    // TODO: Remove
+    ast->accept(prettyPrinter);
 
     return 0;
 }
