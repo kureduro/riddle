@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <algorithm>
 #include <memory>
 
 namespace san {
@@ -41,7 +42,6 @@ private:
     size_t m_depth;
 };
 
-
 class PrettyPrinter : public ast::Visitor {
 public:
     PrettyPrinter(size_t depth = 0) : m_depth(depth) {}
@@ -78,13 +78,13 @@ private:
     size_t m_depth = 0;
 
     // If not zero, prefer to output code in one line.
-    // The type is integer to allow nested (recursive) "enabling" and 
-    // "disabling" of this option.
+    // The type is integer to allow nested (recursive) "enabling" and
+    //  "disabling" of this option.
     int m_oneLine = 0;
 
-    // Option should be changed to non-zero value to skip 'var' keyword when 
-    // printing variable declarations. Useful for correctly printing record
-    // fields and routine parameters.
+    // Option should be changed to non-zero value to skip 'var' keyword when
+    //  printing variable declarations.
+    // Useful for correctly printing record fields and routine parameters.
     int m_skipVarKeyword = 0;
 
     // Print a new line and indent correctly.
@@ -215,6 +215,85 @@ public:
 
 private:
     bool m_insideParameters = false;
+};
+
+/**
+ * This visitor is responsible for verifying that expression types are
+ *  compatible and filling the types with the appropriate casting rules
+ */
+class ExpressionTypeFiller : public ast::Visitor {
+public:
+    void visit(ast::Program* node) override;
+    void visit(ast::RoutineDecl* node) override;
+    void visit(ast::Type* node) override;
+    void visit(ast::AliasedType* node) override;
+    void visit(ast::PrimitiveType* node) override;
+    void visit(ast::IntegerType* node) override;
+    void visit(ast::RealType* node) override;
+    void visit(ast::BooleanType* node) override;
+    void visit(ast::ArrayType* node) override;
+    void visit(ast::RecordType* node) override;
+    void visit(ast::VariableDecl* node) override;
+    void visit(ast::TypeDecl* node) override;
+    void visit(ast::Body* node) override;
+    void visit(ast::Statement* node) override;
+    void visit(ast::ReturnStatement* node) override;
+    void visit(ast::Assignment* node) override;
+    void visit(ast::WhileLoop* node) override;
+    void visit(ast::ForLoop* node) override;
+    void visit(ast::IfStatement* node) override;
+    void visit(ast::Expression* node) override;
+    void visit(ast::UnaryExpression* node) override;
+    void visit(ast::BinaryExpression* node) override;
+    void visit(ast::Primary* node) override;
+    void visit(ast::IntegerLiteral* node) override;
+    void visit(ast::RealLiteral* node) override;
+    void visit(ast::BooleanLiteral* node) override;
+    void visit(ast::Identifier* node) override;
+    void visit(ast::RoutineCall* node) override;
+
+private:
+    bool isBoolean(ast::Expression* node) {
+        return std::dynamic_pointer_cast<ast::BooleanType>(node->type) !=
+               nullptr;
+    }
+    bool isInteger(ast::Expression* node) {
+        return std::dynamic_pointer_cast<ast::IntegerType>(node->type) !=
+               nullptr;
+    }
+    bool isReal(ast::Expression* node) {
+        return std::dynamic_pointer_cast<ast::RealType>(node->type) != nullptr;
+    }
+    bool isRecord(ast::Expression* node) {
+        return std::dynamic_pointer_cast<ast::RecordType>(node->type) !=
+               nullptr;
+    }
+    bool isArray(ast::Expression* node) {
+        return std::dynamic_pointer_cast<ast::ArrayType>(node->type) != nullptr;
+    }
+    bool isIdentifier(ast::Expression* node) {
+        return dynamic_cast<ast::Identifier*>(node) != nullptr;
+    }
+    bool isPrimitive(ast::Expression* node) {
+        return isBoolean(node) || isInteger(node) || isReal(node);
+    }
+    bool conforms(ast::Expression* lhs, ast::Expression* rhs) {
+        if (isBoolean(lhs)) {
+            bool is1or0 = false;
+            auto literal = dynamic_cast<ast::IntegerLiteral*>(rhs);
+            if (isInteger(rhs) && literal != nullptr) {
+                is1or0 = literal->value == 1 || literal->value == 0;
+            }
+            return isBoolean(rhs) || is1or0;
+        }
+        if (isInteger(lhs) || isReal(lhs)) {
+            return isPrimitive(rhs);
+        }
+        // if not primitive, must match exactly (by value, not reference)
+        // TODO: handle array conformance for length
+        //  might be easier to implement on the == operator itself
+        return *lhs->type == *rhs->type;
+    }
 };
 
 } // namespace san
