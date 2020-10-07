@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <cassert>
 #include <memory>
 
 namespace san {
@@ -40,7 +41,6 @@ public:
 private:
     size_t m_depth;
 };
-
 
 /**
  * Pretty printer will produce a code using the AST, that would resemble
@@ -84,11 +84,11 @@ private:
     size_t m_depth = 0;
 
     // If not zero, prefer to output code in one line.
-    // The type is integer to allow nested (recursive) "enabling" and 
+    // The type is integer to allow nested (recursive) "enabling" and
     // "disabling" of this option.
     int m_oneLine = 0;
 
-    // Option should be changed to non-zero value to skip 'var' keyword when 
+    // Option should be changed to non-zero value to skip 'var' keyword when
     // printing variable declarations. Useful for correctly printing record
     // fields and routine parameters.
     int m_skipVarKeyword = 0;
@@ -96,7 +96,6 @@ private:
     // Print a new line and indent correctly.
     void newline();
 };
-
 
 /**
  * Analyze bodies of the routines and check that routine will always return.
@@ -149,7 +148,6 @@ public:
 private:
     bool m_hasReturn = true;
 };
-
 
 /**
  * This visitor performs resolution of variables/routine calls to their
@@ -275,6 +273,46 @@ public:
 
 private:
     bool m_insideParameters = false;
+};
+
+/**
+ * This visitor assigns the constantness state to expressions, highlighting if
+ *  it is a compile-time constant or not. If it is a compile-time constant, it
+ *  also evaluates it and replaces the expression
+ */
+class ConstExprEvaluator : public ast::Visitor {
+public:
+    void visit(ast::Program* node) override;
+    void visit(ast::RoutineDecl* node) override;
+    void visit(ast::AliasedType* node) override;
+    void visit(ast::IntegerType* node) override;
+    void visit(ast::RealType* node) override;
+    void visit(ast::BooleanType* node) override;
+    void visit(ast::ArrayType* node) override;
+    void visit(ast::RecordType* node) override;
+    void visit(ast::VariableDecl* node) override;
+    void visit(ast::TypeDecl* node) override;
+    void visit(ast::Body* node) override;
+    void visit(ast::ReturnStatement* node) override;
+    void visit(ast::Assignment* node) override;
+    void visit(ast::WhileLoop* node) override;
+    void visit(ast::ForLoop* node) override;
+    void visit(ast::IfStatement* node) override;
+    void visit(ast::UnaryExpression* node) override;
+    void visit(ast::BinaryExpression* node) override;
+    void visit(ast::IntegerLiteral* node) override;
+    void visit(ast::RealLiteral* node) override;
+    void visit(ast::BooleanLiteral* node) override;
+    void visit(ast::Identifier* node) override;
+    void visit(ast::RoutineCall* node) override;
+    // abstract classes
+    void visit(ast::Type* node) override { assert(false); }
+    void visit(ast::PrimitiveType* node) override { assert(false); }
+    void visit(ast::Statement* node) override { assert(false); }
+    void visit(ast::Expression* node) override { assert(false); }
+    void visit(ast::Primary* node) override { assert(false); }
+
+private:
 };
 
 } // namespace san
