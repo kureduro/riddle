@@ -51,7 +51,9 @@ public:
     void visit(ast::Identifier* node) override;
     void visit(ast::RoutineCall* node) override;
 
-    void print() { m_module->print(llvm::errs(), nullptr); }
+    void print(llvm::raw_ostream& stream = llvm::errs()) {
+        m_module->print(stream, nullptr);
+    }
     void emitCode(std::string filename = "output.o");
     llvm::Module::FunctionListType& getFunctions();
 

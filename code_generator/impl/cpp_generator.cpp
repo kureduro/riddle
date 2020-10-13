@@ -48,6 +48,9 @@ void generateIntermediateCpp(std::string filename, CodeGenerator& codegen) {
     // Extern C function declarations
     fmt::print(file, "extern \"C\" {{\n");
     for (auto& func : codegen.getFunctions()) {
+        if (func.getName().startswith("llvm")) {
+            continue;
+        }
         // return type
         fmt::print(file, "{} ", typeToStr(func.getReturnType()));
         // function name
@@ -71,6 +74,9 @@ void generateIntermediateCpp(std::string filename, CodeGenerator& codegen) {
                      " argument\\n\"; return 1; }}\n\n");
 
     for (auto& func : codegen.getFunctions()) {
+        if (func.getName().startswith("llvm")) {
+            continue;
+        }
         fmt::print(file, "\tif (strcmp(argv[1], \"{}\") == 0) {{\n",
                    func.getName().str());
         fmt::print(file,
