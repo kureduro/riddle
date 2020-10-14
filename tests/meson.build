@@ -22,7 +22,7 @@ parser_test = executable('parserTest', ['test_main.cpp', 'parser/parser_test.cpp
                         c_args : riddle_c_args,
                         link_args : riddle_link_args,
                         dependencies :
-                        [ fmt_dep, catch2_dep, common_dep, lexer_dep, ast_dep, parser_dep])
+                        [ fmt_dep, catch2_dep, common_dep, lexer_dep, ast_dep, parser_dep, visitors_dep])
 
 test('common', common_test)
 test('lexer', lexer_test)
