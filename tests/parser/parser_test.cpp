@@ -2,12 +2,14 @@
 #include "catch_helpers.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "visitors.hpp"
+#include "san.hpp"
 #include <iterator>
 
 /**
  * Since only the parser should be tested here, a dummy (stub) lexer
  *  is used to not be affected by bugs in the actual parser
+ * TODO: This class is broken since the Lexer refactoring. It should be fixed
+ *  such that it now overrides `scanNext` instead of `Next`
  */
 class DummyLexer : public lexer::Lexer {
 
@@ -52,37 +54,49 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("Order of operations is preserved") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseExpression();
-                
-                //visitors::PrintVisitor v;
-                //tree->accept(v);
 
-                std::shared_ptr<ast::BinaryExpression> rootNode = std::dynamic_pointer_cast<ast::BinaryExpression>(tree);
+                // visitors::PrintVisitor v;
+                // tree->accept(v);
+
+                std::shared_ptr<ast::BinaryExpression> rootNode =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(tree);
                 REQUIRE(rootNode != nullptr);
                 REQUIRE(rootNode->operation == lexer::TokenType::Add);
 
                 // Left
-                std::shared_ptr<ast::UnaryExpression> leftChild = std::dynamic_pointer_cast<ast::UnaryExpression>(rootNode->operand1);
+                std::shared_ptr<ast::UnaryExpression> leftChild =
+                    std::dynamic_pointer_cast<ast::UnaryExpression>(
+                        rootNode->operand1);
                 REQUIRE(leftChild != nullptr);
                 REQUIRE(leftChild->operation == lexer::TokenType::Sub);
-                std::shared_ptr<ast::IntegerLiteral> leftLeftChild = std::dynamic_pointer_cast<ast::IntegerLiteral>(leftChild->operand);
+                std::shared_ptr<ast::IntegerLiteral> leftLeftChild =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        leftChild->operand);
                 REQUIRE(leftLeftChild != nullptr);
                 REQUIRE(leftLeftChild->value == 2);
-                
+
                 // Right
-                std::shared_ptr<ast::BinaryExpression> rightChild = std::dynamic_pointer_cast<ast::BinaryExpression>(rootNode->operand2);
+                std::shared_ptr<ast::BinaryExpression> rightChild =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(
+                        rootNode->operand2);
                 REQUIRE(rightChild != nullptr);
                 REQUIRE(rightChild->operation == lexer::TokenType::Div);
-                std::shared_ptr<ast::IntegerLiteral> rightLeftChild = std::dynamic_pointer_cast<ast::IntegerLiteral>(rightChild->operand1);
+                std::shared_ptr<ast::IntegerLiteral> rightLeftChild =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        rightChild->operand1);
                 REQUIRE(rightLeftChild != nullptr);
                 REQUIRE(rightLeftChild->value == 6);
-                std::shared_ptr<ast::IntegerLiteral> rightRightChild = std::dynamic_pointer_cast<ast::IntegerLiteral>(rightChild->operand2);
+                std::shared_ptr<ast::IntegerLiteral> rightRightChild =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        rightChild->operand2);
                 REQUIRE(rightRightChild != nullptr);
                 REQUIRE(rightRightChild->value == 3);
             }
         }
 
         WHEN("Tokens represent a routine") {
-            lexer::Lexer lx{"routine main(num : integer) : integer is\nvar a is 1;\nreturn a;\nend"};
+            lexer::Lexer lx{"routine main(num : integer) : integer is\nvar a "
+                            "is 1;\nreturn a;\nend"};
             /*
             routine main(num : integer) : integer is
                 var a is 1;
@@ -106,24 +120,31 @@ SCENARIO("Parser builds a tree from tokens") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseRoutineDecl();
 
-                std::shared_ptr<ast::RoutineDecl> routine = std::dynamic_pointer_cast<ast::RoutineDecl>(tree);
+                std::shared_ptr<ast::RoutineDecl> routine =
+                    std::dynamic_pointer_cast<ast::RoutineDecl>(tree);
                 REQUIRE(routine != nullptr);
                 REQUIRE(routine->name == "main");
-                
+
                 REQUIRE(routine->parameters.size() == 1);
-                std::shared_ptr<ast::VariableDecl> parameters = std::dynamic_pointer_cast<ast::VariableDecl>(routine->parameters[0]);
+                std::shared_ptr<ast::VariableDecl> parameters =
+                    std::dynamic_pointer_cast<ast::VariableDecl>(
+                        routine->parameters[0]);
                 REQUIRE(parameters != nullptr);
 
-                std::shared_ptr<ast::Body> body = std::dynamic_pointer_cast<ast::Body>(routine->body);
+                std::shared_ptr<ast::Body> body =
+                    std::dynamic_pointer_cast<ast::Body>(routine->body);
                 REQUIRE(body != nullptr);
 
-                std::shared_ptr<ast::IntegerType> returnType = std::dynamic_pointer_cast<ast::IntegerType>(routine->returnType);
+                std::shared_ptr<ast::IntegerType> returnType =
+                    std::dynamic_pointer_cast<ast::IntegerType>(
+                        routine->returnType);
                 REQUIRE(returnType != nullptr);
             }
         }
 
         WHEN("The routine is not named") {
-            lexer::Lexer lx{"routine (num : integer) : integer is\nvar a is 1;\nreturn a;\nend"};
+            lexer::Lexer lx{"routine (num : integer) : integer is\nvar a is "
+                            "1;\nreturn a;\nend"};
             /*
             routine (num : integer) : integer is
                 var a is 1;
@@ -155,13 +176,17 @@ SCENARIO("Parser builds a tree from tokens") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseParameter();
 
-                std::shared_ptr<ast::VariableDecl> x = std::dynamic_pointer_cast<ast::VariableDecl>(tree);
+                std::shared_ptr<ast::VariableDecl> x =
+                    std::dynamic_pointer_cast<ast::VariableDecl>(tree);
                 REQUIRE(x != nullptr);
                 REQUIRE(x->name == "x");
 
-                std::shared_ptr<ast::ArrayType> arrayType = std::dynamic_pointer_cast<ast::ArrayType>(x->type);
+                std::shared_ptr<ast::ArrayType> arrayType =
+                    std::dynamic_pointer_cast<ast::ArrayType>(x->type);
                 REQUIRE(arrayType != nullptr);
-                std::shared_ptr<ast::IntegerType> type = std::dynamic_pointer_cast<ast::IntegerType>(arrayType->elementType);
+                std::shared_ptr<ast::IntegerType> type =
+                    std::dynamic_pointer_cast<ast::IntegerType>(
+                        arrayType->elementType);
                 REQUIRE(arrayType != nullptr);
             }
         }
@@ -180,35 +205,44 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseType();
-                
-                //visitors::PrintVisitor v;
-                //tree->accept(v);
 
-                std::shared_ptr<ast::ArrayType> array = std::dynamic_pointer_cast<ast::ArrayType>(tree);
+                // visitors::PrintVisitor v;
+                // tree->accept(v);
+
+                std::shared_ptr<ast::ArrayType> array =
+                    std::dynamic_pointer_cast<ast::ArrayType>(tree);
                 REQUIRE(array != nullptr);
-                std::shared_ptr<ast::BinaryExpression> length = std::dynamic_pointer_cast<ast::BinaryExpression>(array->length);
+                std::shared_ptr<ast::BinaryExpression> length =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(
+                        array->length);
                 REQUIRE(length != nullptr);
                 REQUIRE(length->operation == lexer::TokenType::Add);
-                std::shared_ptr<ast::IntegerLiteral> leftChild = std::dynamic_pointer_cast<ast::IntegerLiteral>(length->operand1);
+                std::shared_ptr<ast::IntegerLiteral> leftChild =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        length->operand1);
                 REQUIRE(leftChild != nullptr);
                 REQUIRE(leftChild->value == 5);
-                std::shared_ptr<ast::IntegerLiteral> rightChild = std::dynamic_pointer_cast<ast::IntegerLiteral>(length->operand2);
+                std::shared_ptr<ast::IntegerLiteral> rightChild =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        length->operand2);
                 REQUIRE(rightChild != nullptr);
                 REQUIRE(rightChild->value == 3);
 
-
-                std::shared_ptr<ast::RealType> el_type= std::dynamic_pointer_cast<ast::RealType>(array->elementType);
+                std::shared_ptr<ast::RealType> el_type =
+                    std::dynamic_pointer_cast<ast::RealType>(
+                        array->elementType);
                 REQUIRE(el_type != nullptr);
             }
         }
 
         WHEN("Tokens represent a for loop with reverse") {
-            lexer::Lexer lx{"for i in reverse 1..4 loop \n sum := sum + i; \n end"};
+            lexer::Lexer lx{
+                "for i in reverse 1..4 loop \n sum := sum + i; \n end"};
             /*
             for i in reverse 1..4 loop
                 sum := i + sum;
             end
-                    
+
             ----------------Tree
 
             - [ForLoop]>
@@ -225,20 +259,26 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseForLoop();
-                
-                std::shared_ptr<ast::ForLoop> forloop = std::dynamic_pointer_cast<ast::ForLoop>(tree);
+
+                std::shared_ptr<ast::ForLoop> forloop =
+                    std::dynamic_pointer_cast<ast::ForLoop>(tree);
                 REQUIRE(forloop != nullptr);
                 REQUIRE(forloop->reverse == true);
 
-                std::shared_ptr<ast::IntegerLiteral> rangefrom = std::dynamic_pointer_cast<ast::IntegerLiteral>(forloop->rangeFrom);
+                std::shared_ptr<ast::IntegerLiteral> rangefrom =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        forloop->rangeFrom);
                 REQUIRE(rangefrom != nullptr);
                 REQUIRE(rangefrom->value == 1);
 
-                std::shared_ptr<ast::IntegerLiteral> rangeto = std::dynamic_pointer_cast<ast::IntegerLiteral>(forloop->rangeTo);
+                std::shared_ptr<ast::IntegerLiteral> rangeto =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(
+                        forloop->rangeTo);
                 REQUIRE(rangeto != nullptr);
                 REQUIRE(rangeto->value == 4);
 
-                std::shared_ptr<ast::Body> body = std::dynamic_pointer_cast<ast::Body>(forloop->body);
+                std::shared_ptr<ast::Body> body =
+                    std::dynamic_pointer_cast<ast::Body>(forloop->body);
                 REQUIRE(body != nullptr);
             }
         }
@@ -266,20 +306,25 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseWhileLoop();
-                
-                std::shared_ptr<ast::WhileLoop> whileloop = std::dynamic_pointer_cast<ast::WhileLoop>(tree);
+
+                std::shared_ptr<ast::WhileLoop> whileloop =
+                    std::dynamic_pointer_cast<ast::WhileLoop>(tree);
                 REQUIRE(whileloop != nullptr);
 
-                std::shared_ptr<ast::BinaryExpression> condition = std::dynamic_pointer_cast<ast::BinaryExpression>(whileloop->condition);
+                std::shared_ptr<ast::BinaryExpression> condition =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(
+                        whileloop->condition);
                 REQUIRE(condition != nullptr);
                 REQUIRE(condition->operation == lexer::TokenType::Less);
 
-                std::shared_ptr<ast::Body> body = std::dynamic_pointer_cast<ast::Body>(whileloop->body);
+                std::shared_ptr<ast::Body> body =
+                    std::dynamic_pointer_cast<ast::Body>(whileloop->body);
                 REQUIRE(body != nullptr);
             }
         }
         WHEN("Tokens represent an if-else statement") {
-            lexer::Lexer lx{"if num /= 1 then\nreturn num;\nelse\nreturn 1;\nend"};
+            lexer::Lexer lx{
+                "if num /= 1 then\nreturn num;\nelse\nreturn 1;\nend"};
             /*
             if num /= 1 then
                 return num;
@@ -303,20 +348,24 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseIfStatement();
-                
-                std::shared_ptr<ast::IfStatement> ifst = std::dynamic_pointer_cast<ast::IfStatement>(tree);
+
+                std::shared_ptr<ast::IfStatement> ifst =
+                    std::dynamic_pointer_cast<ast::IfStatement>(tree);
                 REQUIRE(ifst != nullptr);
 
-                std::shared_ptr<ast::BinaryExpression> condition = std::dynamic_pointer_cast<ast::BinaryExpression>(ifst->condition);
+                std::shared_ptr<ast::BinaryExpression> condition =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(
+                        ifst->condition);
                 REQUIRE(condition != nullptr);
                 REQUIRE(condition->operation == lexer::TokenType::Neq);
 
-                std::shared_ptr<ast::Body> thenb = std::dynamic_pointer_cast<ast::Body>(ifst->ifBody);
+                std::shared_ptr<ast::Body> thenb =
+                    std::dynamic_pointer_cast<ast::Body>(ifst->ifBody);
                 REQUIRE(thenb != nullptr);
 
-                std::shared_ptr<ast::Body> elseb = std::dynamic_pointer_cast<ast::Body>(ifst->elseBody);
+                std::shared_ptr<ast::Body> elseb =
+                    std::dynamic_pointer_cast<ast::Body>(ifst->elseBody);
                 REQUIRE(elseb != nullptr);
-
             }
         }
         WHEN("Tokens represent an if seatement without else") {
@@ -337,23 +386,29 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseIfStatement();
-                
-                std::shared_ptr<ast::IfStatement> ifst = std::dynamic_pointer_cast<ast::IfStatement>(tree);
+
+                std::shared_ptr<ast::IfStatement> ifst =
+                    std::dynamic_pointer_cast<ast::IfStatement>(tree);
                 REQUIRE(ifst != nullptr);
 
-                std::shared_ptr<ast::BinaryExpression> condition = std::dynamic_pointer_cast<ast::BinaryExpression>(ifst->condition);
+                std::shared_ptr<ast::BinaryExpression> condition =
+                    std::dynamic_pointer_cast<ast::BinaryExpression>(
+                        ifst->condition);
                 REQUIRE(condition != nullptr);
                 REQUIRE(condition->operation == lexer::TokenType::Neq);
 
-                std::shared_ptr<ast::Body> thenb = std::dynamic_pointer_cast<ast::Body>(ifst->ifBody);
+                std::shared_ptr<ast::Body> thenb =
+                    std::dynamic_pointer_cast<ast::Body>(ifst->ifBody);
                 REQUIRE(thenb != nullptr);
 
-                std::shared_ptr<ast::Body> elseb = std::dynamic_pointer_cast<ast::Body>(ifst->elseBody);
+                std::shared_ptr<ast::Body> elseb =
+                    std::dynamic_pointer_cast<ast::Body>(ifst->elseBody);
                 REQUIRE(elseb == nullptr);
             }
         }
         WHEN("Tokens represent a body") {
-            lexer::Lexer lx{"type int is integer\nvar a : int\na := 5;\nrout(a);\nb := a;\nend"};
+            lexer::Lexer lx{"type int is integer\nvar a : int\na := "
+                            "5;\nrout(a);\nb := a;\nend"};
             /*
             type int is integer
             var a : int
@@ -379,39 +434,51 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseBody();
-                
-                //visitors::PrintVisitor v;
-                //tree->accept(v);
 
-                std::shared_ptr<ast::Body> body = std::dynamic_pointer_cast<ast::Body>(tree);
+                // visitors::PrintVisitor v;
+                // tree->accept(v);
+
+                std::shared_ptr<ast::Body> body =
+                    std::dynamic_pointer_cast<ast::Body>(tree);
                 REQUIRE(body != nullptr);
                 REQUIRE(body->statements.size() == 3);
                 REQUIRE(body->variables.size() == 1);
                 REQUIRE(body->types.size() == 1);
 
-                std::shared_ptr<ast::Assignment> as1 = std::dynamic_pointer_cast<ast::Assignment>(body->statements[0]);
+                std::shared_ptr<ast::Assignment> as1 =
+                    std::dynamic_pointer_cast<ast::Assignment>(
+                        body->statements[0]);
                 REQUIRE(as1 != nullptr);
-                std::shared_ptr<ast::Identifier> a1 = std::dynamic_pointer_cast<ast::Identifier>(as1->lhs);
+                std::shared_ptr<ast::Identifier> a1 =
+                    std::dynamic_pointer_cast<ast::Identifier>(as1->lhs);
                 REQUIRE(a1 != nullptr);
                 REQUIRE(a1->name == "a");
-                std::shared_ptr<ast::IntegerLiteral> five = std::dynamic_pointer_cast<ast::IntegerLiteral>(as1->rhs);
+                std::shared_ptr<ast::IntegerLiteral> five =
+                    std::dynamic_pointer_cast<ast::IntegerLiteral>(as1->rhs);
                 REQUIRE(five != nullptr);
                 REQUIRE(five->value == 5);
 
-                std::shared_ptr<ast::Assignment> as2 = std::dynamic_pointer_cast<ast::Assignment>(body->statements[2]);
+                std::shared_ptr<ast::Assignment> as2 =
+                    std::dynamic_pointer_cast<ast::Assignment>(
+                        body->statements[2]);
                 REQUIRE(as2 != nullptr);
-                std::shared_ptr<ast::Identifier> b1 = std::dynamic_pointer_cast<ast::Identifier>(as2->lhs);
+                std::shared_ptr<ast::Identifier> b1 =
+                    std::dynamic_pointer_cast<ast::Identifier>(as2->lhs);
                 REQUIRE(b1 != nullptr);
                 REQUIRE(b1->name == "b");
-                std::shared_ptr<ast::Identifier> a2 = std::dynamic_pointer_cast<ast::Identifier>(as2->rhs);
+                std::shared_ptr<ast::Identifier> a2 =
+                    std::dynamic_pointer_cast<ast::Identifier>(as2->rhs);
                 REQUIRE(a2 != nullptr);
                 REQUIRE(a2->name == "a");
 
-                std::shared_ptr<ast::RoutineCall> rc = std::dynamic_pointer_cast<ast::RoutineCall>(body->statements[1]);
+                std::shared_ptr<ast::RoutineCall> rc =
+                    std::dynamic_pointer_cast<ast::RoutineCall>(
+                        body->statements[1]);
                 REQUIRE(rc != nullptr);
                 REQUIRE(rc->routineName == "rout");
                 REQUIRE(rc->args.size() == 1);
-                std::shared_ptr<ast::Identifier> identifier = std::dynamic_pointer_cast<ast::Identifier>(rc->args[0]);
+                std::shared_ptr<ast::Identifier> identifier =
+                    std::dynamic_pointer_cast<ast::Identifier>(rc->args[0]);
                 REQUIRE(identifier != nullptr);
                 REQUIRE(identifier->name == "a");
             }
@@ -429,17 +496,21 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseTypeDecl();
-                
-                std::shared_ptr<ast::TypeDecl> type = std::dynamic_pointer_cast<ast::TypeDecl>(tree);
+
+                std::shared_ptr<ast::TypeDecl> type =
+                    std::dynamic_pointer_cast<ast::TypeDecl>(tree);
                 REQUIRE(type != nullptr);
                 REQUIRE(type->name == "int");
-                std::shared_ptr<ast::IntegerType> t = std::dynamic_pointer_cast<ast::IntegerType>(type->type);
+                std::shared_ptr<ast::IntegerType> t =
+                    std::dynamic_pointer_cast<ast::IntegerType>(type->type);
                 REQUIRE(t != nullptr);
-                
             }
         }
         WHEN("Tokens represent a program") {
-            lexer::Lexer lx{"type vector is array [5] integer\nvar a : vector\nvar b : float\nroutine main(m : integer) is\nb := 5.2\nvar i is 1\nwhile i <= 5 loop\na[i] := b\nb := b + 0.5\nend\nend"};
+            lexer::Lexer lx{
+                "type vector is array [5] integer\nvar a : vector\nvar b : "
+                "float\nroutine main(m : integer) is\nb := 5.2\nvar i is "
+                "1\nwhile i <= 5 loop\na[i] := b\nb := b + 0.5\nend\nend"};
             /*
             type vector is array [5] integer
             var a : vector
@@ -492,8 +563,6 @@ SCENARIO("Parser builds a tree from tokens") {
             THEN("It is parsed correctly") {
                 parser::Parser parser(lx);
                 auto tree = parser.parseProgram();
-                
-
             }
         }
     }
